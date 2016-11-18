@@ -21,8 +21,15 @@ then
 echo "$time :: $server is UP, Installing Public key" >> /users/home/user/main.log
 
 /users/home/user/key_copy.exp "username" "password" $server
+
+if [ $? -eq 0 ]
+then
 echo "$time :: Installed Public key on $server" >> /users/home/user/main.log
 echo >> /users/home/user/main.log
+
+else
+echo "$time :: Installation of Public key failed on $server" >> /users/home/user/main.log
+fi
 
 else
 
