@@ -1,0 +1,93 @@
+####################################################
+main.sh
+####################################################
+
+#!/bin/bash
+{
+server_list="/users/home/user/servers.txt"
+time=`date`
+
+echo $time > /users/home/user/main.log
+echo >> /users/home/user/main.log
+
+for server in `cat $server_list`
+do
+
+ping -q -c2 $server > /dev/null
+
+if [ $? -eq 0 ]
+then
+
+echo "$time :: $server is UP, Installing Public key" >> /users/home/user/main.log
+
+/users/home/user/key_copy.exp "username" "password" $server
+echo "$time :: Installed Public key on $server" >> /users/home/user/main.log
+echo >> /users/home/user/main.log
+
+else
+
+echo "$time :: $server is DOWN, skipping key copy step for this server." >> /users/home/user/main.log
+echo >> /users/home/user/main.log
+fi
+
+done
+} 2> /users/home/user/error.log
+
+
+####################################################
+key_copy.exp
+####################################################
+#!/usr/bin/expect
+
+log_file -a /users/home/user/expectscript.log
+log_user 0
+
+set username [lindex $argv 0]
+set password [lindex $argv 1]
+set hostname [lindex $argv 2]
+
+set timeout 10
+
+spawn ssh-copy-id -i /users/home/user/.ssh/mykey.pub $username\@$hostname
+
+expect {
+    "assword: " {
+        send "$password\n"
+        expect {
+            "again."     { exit 1 }
+            "expecting." { }
+            timeout      { exit 1 }
+        }
+    }
+    "(yes/no)? " {
+        send "yes\n"
+        expect {
+            "assword: " {
+                send "$password\n"
+                expect {
+                    "again."     { exit 1 }
+                    "expecting." { }
+                    timeout      { exit 1 }
+                }
+            }
+        }
+    }
+}
+
+exit 0
+
+####################################################
+My Public Key (mykey.pub)
+####################################################
+public key
+
+####################################################
+servers.txt
+####################################################
+list of servers
+
+####################################################
+Permission on file and directory if created manually
+####################################################
+drwx------   2 user group  4096 Nov 10 09:05 .ssh
+-rw------- 1 user group 1143 Nov 10 09:32 authorize
